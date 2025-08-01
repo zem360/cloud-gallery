@@ -1,0 +1,30 @@
+# Project Configuration
+project_name = "art-pipeline"
+environment  = "prod"
+
+# AWS Configuration
+aws_region = "us-east-1"
+
+# S3 Configuration
+website_bucket_name = "your-unique-art-pipeline-website"
+
+# DynamoDB Configuration
+dynamodb_table_name = "art-metadata"
+
+# Notification Configuration
+notification_email = "your-email@example.com"
+
+# EventBridge Configuration
+schedule_expression = "cron(0 12 * * ? *)"  # Daily at 12 PM UTC
+
+# Lambda Configuration
+lambda_timeout = 300
+lambda_memory  = 256
+
+# Tags
+tags = {
+  Project     = "art-pipeline"
+  Environment = "prod"
+  Owner       = "your-name"
+  CreatedBy   = "terraform"
+}
