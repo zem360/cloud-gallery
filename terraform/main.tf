@@ -9,3 +9,14 @@ module "s3_website" {
     Component = "Website"
   }
 }
+
+module "dynamodb" {
+  source = "./modules/dynamodb"
+  
+  table_name  = var.dynamodb_table_name
+  environment = var.environment
+  
+  tags = {
+    Component = "Database"
+  }
+}

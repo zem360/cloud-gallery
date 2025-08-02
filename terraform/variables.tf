@@ -20,3 +20,8 @@ variable "website_bucket_name" {
   description = "Name of the S3 bucket for static website hosting"
   type        = string
 }
+
+variable "dynamodb_table_name" {
+  description = "Name of the DynamoDB table"
+  type        = string
+}
