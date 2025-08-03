@@ -1,30 +1,25 @@
-# Project Configuration
-project_name = "art-pipeline"
-environment  = "prod"
-
 # AWS Configuration
-aws_region = "us-east-1"
+aws_region = "YOUR_AWS_REGION"
 
-# S3 Configuration
-website_bucket_name = "your-unique-art-pipeline-website"
+# Project Configuration
+project_name = "YOUR_PROJECT_NAME"
+environment  = "YOUR_ENVIRONMENT"  # e.g., dev, staging, prod
+
+# S3 Configuration - Update with your unique bucket name
+website_bucket_name = "YOUR_UNIQUE_BUCKET_NAME"
 
 # DynamoDB Configuration
-dynamodb_table_name = "art-metadata"
-
-# Notification Configuration
-notification_email = "your-email@example.com"
-
-# EventBridge Configuration
-schedule_expression = "cron(0 12 * * ? *)"  # Daily at 12 PM UTC
+dynamodb_table_name = "YOUR_DYNAMODB_TABLE_NAME"
 
 # Lambda Configuration
-lambda_timeout = 300
-lambda_memory  = 256
+lambda_fetch_art_name       = "YOUR_LAMBDA_FETCH_ART_NAME"
+lambda_process_store_name   = "YOUR_LAMBDA_PROCESS_STORE_NAME"
+lambda_generate_html_name   = "YOUR_LAMBDA_GENERATE_HTML_NAME"
+lambda_notifications_name   = "YOUR_LAMBDA_NOTIFICATIONS_NAME"
 
-# Tags
-tags = {
-  Project     = "art-pipeline"
-  Environment = "prod"
-  Owner       = "your-name"
-  CreatedBy   = "terraform"
-}
+# Step Functions Configuration
+step_functions_name = "YOUR_STEP_FUNCTIONS_NAME"
+
+# EventBridge Configuration
+eventbridge_rule_name = "YOUR_EVENTBRIDGE_RULE_NAME"
+schedule_expression   = "YOUR_SCHEDULE_EXPRESSION"  # e.g., cron(0 12 * * ? *) for daily 12:00 UTC
