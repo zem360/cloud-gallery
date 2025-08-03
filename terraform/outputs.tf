@@ -12,3 +12,8 @@ output "table_name" {
   description = "Name of the DynamoDB table"
   value       = module.dynamodb.table_name
 }
+
+output "step_functions_arn" {
+  description = "ARN of the Step Functions state machine"
+  value       = module.step_functions.state_machine_arn
+}
