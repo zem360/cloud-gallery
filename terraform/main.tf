@@ -139,3 +139,18 @@ module "lambda_notifications" {
     Component = "Notifications"
   }
 }
+
+module "step_functions" {
+  source = "./modules/step_functions"
+  
+  state_machine_name         = var.step_functions_name
+  environment               = var.environment
+  lambda_fetch_art_arn      = module.lambda_fetch_art.function_arn
+  lambda_process_store_arn  = module.lambda_process_store.function_arn
+  lambda_generate_html_arn  = module.lambda_generate_html.function_arn
+  lambda_notifications_arn  = module.lambda_notifications.function_arn
+  
+  tags = {
+    Component = "Orchestration"
+  }
+}
