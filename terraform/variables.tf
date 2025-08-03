@@ -50,3 +50,14 @@ variable "step_functions_name" {
   description = "Name of the Step Functions state machine"
   type        = string
 }
+
+variable "eventbridge_rule_name" {
+  description = "Name of the EventBridge rule"
+  type        = string
+}
+
+variable "schedule_expression" {
+  description = "Cron expression for daily schedule"
+  type        = string
+  default     = "cron(0 12 * * ? *)"  # Daily at 12:00 PM UTC
+}

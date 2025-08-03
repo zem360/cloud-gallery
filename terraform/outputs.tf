@@ -17,3 +17,13 @@ output "step_functions_arn" {
   description = "ARN of the Step Functions state machine"
   value       = module.step_functions.state_machine_arn
 }
+
+output "eventbridge_rule_name" {
+  description = "Name of the EventBridge rule"
+  value       = module.eventbridge.rule_name
+}
+
+output "schedule_expression" {
+  description = "Daily schedule expression"
+  value       = module.eventbridge.schedule_expression
+}

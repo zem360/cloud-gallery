@@ -154,3 +154,16 @@ module "step_functions" {
     Component = "Orchestration"
   }
 }
+
+module "eventbridge" {
+  source = "./modules/eventbridge"
+  
+  rule_name           = var.eventbridge_rule_name
+  environment         = var.environment
+  schedule_expression = var.schedule_expression
+  step_function_arn   = module.step_functions.state_machine_arn
+  
+  tags = {
+    Component = "Scheduler"
+  }
+}
