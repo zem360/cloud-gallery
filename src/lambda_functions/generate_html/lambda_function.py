@@ -1,5 +1,4 @@
-import json
-import boto3 # type: ignore 
+import boto3  # type: ignore
 import logging
 from datetime import datetime
 from botocore.exceptions import ClientError  # type: ignore
@@ -9,51 +8,56 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 # Initialize AWS clients
-s3_client = boto3.client('s3')
-dynamodb = boto3.resource('dynamodb')
+s3_client = boto3.client("s3")
+dynamodb = boto3.resource("dynamodb")
+
 
 def get_environment_variables():
     """Get required environment variables"""
     import os
-    bucket_name = os.environ.get('S3_BUCKET_NAME')
-    table_name = os.environ.get('DYNAMODB_TABLE_NAME')
-    
+
+    bucket_name = os.environ.get("S3_BUCKET_NAME")
+    table_name = os.environ.get("DYNAMODB_TABLE_NAME")
+
     if not bucket_name or not table_name:
         raise ValueError("Required environment variables not set")
-    
+
     return bucket_name, table_name
+
 
 def get_image_url(image_id, backup_check=True):
     """Generate Art Institute image URL with fallback"""
     if not image_id:
         return None
-    
+
     # Primary image URL
     primary_url = f"https://www.artic.edu/iiif/2/{image_id}/full/843,/0/default.jpg"
-    
+
     # Alternative smaller size that might be more reliable
     fallback_url = f"https://www.artic.edu/iiif/2/{image_id}/full/400,/0/default.jpg"
-    
+
     return primary_url, fallback_url
+
 
 def validate_artwork_data(artwork):
     """Enhanced artwork validation"""
     # Ensure required fields exist
-    artwork['title'] = artwork.get('title', 'Untitled').strip()
-    artwork['artist'] = artwork.get('artist', 'Unknown Artist').strip()
-    artwork['date'] = artwork.get('date', 'Unknown Date').strip()
-    
+    artwork["title"] = artwork.get("title", "Untitled").strip()
+    artwork["artist"] = artwork.get("artist", "Unknown Artist").strip()
+    artwork["date"] = artwork.get("date", "Unknown Date").strip()
+
     # Clean up empty or very short titles
-    if len(artwork['title']) < 2:
-        artwork['title'] = 'Untitled'
-    
+    if len(artwork["title"]) < 2:
+        artwork["title"] = "Untitled"
+
     return artwork
+
 
 def generate_html_content(artworks):
     """Generate complete HTML content for the gallery"""
-    
-    current_date = datetime.utcnow().strftime('%B %d, %Y')
-    
+
+    current_date = datetime.utcnow().strftime("%B %d, %Y")
+
     html_content = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -233,7 +237,7 @@ def generate_html_content(artworks):
 <body>
     <div class="container">
         <div class="header">
-            <h1>☁️🎨🖼️ Cloud Gallery</h1>
+            <h1>☁️🖼️ Cloud Gallery</h1>
             <p>Daily Dose of Art - {current_date}</p>
         </div>
         
@@ -250,33 +254,33 @@ def generate_html_content(artworks):
         start_idx = page * 3
         end_idx = min(start_idx + 3, len(artworks))
         page_artworks = artworks[start_idx:end_idx]
-        
+
         active_class = "active" if page == 0 else ""
-        
+
         html_content += f"""
             <div class="artwork-grid {active_class}" id="page{page + 1}">
 """
-        
+
         for artwork in page_artworks:
             # Validate and clean artwork data
             artwork = validate_artwork_data(artwork)
-            
-            image_urls = get_image_url(artwork.get('image_id'))
-            
+
+            image_urls = get_image_url(artwork.get("image_id"))
+
             if image_urls:
                 primary_url, fallback_url = image_urls
                 # Create image with fallback
-                image_html = f'''
+                image_html = f"""
                     <img src="{primary_url}" 
                          alt="{artwork['title']}" 
                          class="artwork-image"
                          onerror="this.onerror=null; this.src='{fallback_url}'; if(this.src==='{fallback_url}' && this.complete && this.naturalWidth===0) {{this.style.display='none'; this.nextElementSibling.style.display='flex';}}"
                     >
                     <div class="artwork-image" style="display:none;">Image not available</div>
-                '''
+                """
             else:
                 image_html = '<div class="artwork-image">Image not available</div>'
-            
+
             html_content += f"""
                 <div class="artwork-card">
                     {image_html}
@@ -287,11 +291,11 @@ def generate_html_content(artworks):
                     </div>
                 </div>
 """
-        
+
         html_content += "</div>"
 
     # Add JavaScript and completion message
-    html_content += f"""
+    html_content += """
             <div class="controls">
                 <button class="btn" id="prevBtn" onclick="changePage(-1)" disabled>Previous</button>
                 <button class="btn" id="nextBtn" onclick="changePage(1)">Next</button>
@@ -309,15 +313,15 @@ def generate_html_content(artworks):
         let currentPage = 1;
         const totalPages = 3;
         
-        function changePage(direction) {{
+        function changePage(direction) {
             // Hide current page
-            document.getElementById(`page${{currentPage}}`).classList.remove('active');
+            document.getElementById(`page${currentPage}`).classList.remove('active');
             
             // Update page number
             currentPage += direction;
             
             // Show new page
-            document.getElementById(`page${{currentPage}}`).classList.add('active');
+            document.getElementById(`page${currentPage}`).classList.add('active');
             
             // Update page indicator
             document.getElementById('currentPage').textContent = currentPage;
@@ -327,35 +331,36 @@ def generate_html_content(artworks):
             document.getElementById('nextBtn').disabled = (currentPage === totalPages);
             
             // Show completion message if on last page
-            if (currentPage === totalPages) {{
-                setTimeout(() => {{
+            if (currentPage === totalPages) {
+                setTimeout(() => {
                     document.getElementById('completionMessage').style.display = 'block';
-                }}, 1000);
-            }} else {{
+                }, 1000);
+            } else {
                 document.getElementById('completionMessage').style.display = 'none';
-            }}
-        }}
+            }
+        }
         
-        function showRandomArt() {{
+        function showRandomArt() {
             alert('Random art feature coming soon! This would query DynamoDB for previous artworks.');
             // Future: Implement AJAX call to get random artworks from DynamoDB
-        }}
+        }
     </script>
 </body>
 </html>
 """
-    
+
     return html_content
+
 
 def upload_to_s3(bucket_name, html_content):
     """Upload HTML content to S3 bucket"""
     try:
         s3_client.put_object(
             Bucket=bucket_name,
-            Key='index.html',
+            Key="index.html",
             Body=html_content,
-            ContentType='text/html',
-            CacheControl='no-cache'
+            ContentType="text/html",
+            CacheControl="no-cache",
         )
         logger.info(f"Successfully uploaded HTML to S3 bucket: {bucket_name}")
         return True
@@ -363,53 +368,51 @@ def upload_to_s3(bucket_name, html_content):
         logger.error(f"Failed to upload to S3: {e}")
         return False
 
+
 def lambda_handler(event, context):
     """
     Generate HTML gallery and upload to S3
     """
     logger.info("Starting HTML generation and S3 upload")
-    
+
     try:
         # Get environment variables
         bucket_name, table_name = get_environment_variables()
-        
+
         # Get artworks from previous step
-        if 'body' in event and 'artworks' in event['body']:
-            artworks = event['body']['artworks']
+        if "body" in event and "artworks" in event["body"]:
+            artworks = event["body"]["artworks"]
         else:
             raise ValueError("No artworks found in event data")
-        
+
         logger.info(f"Generating HTML for {len(artworks)} artworks")
-        
+
         # Validate we have artworks
         if not artworks:
             raise ValueError("No artworks to display")
-        
+
         # Generate HTML content
         html_content = generate_html_content(artworks)
-        
+
         # Upload to S3
         upload_success = upload_to_s3(bucket_name, html_content)
-        
+
         if not upload_success:
             raise Exception("Failed to upload HTML to S3")
-        
+
         return {
-            'statusCode': 200,
-            'body': {
-                'message': 'Successfully generated and uploaded HTML gallery',
-                'artworks_count': len(artworks),
-                'bucket_name': bucket_name,
-                'url': f"http://{bucket_name}.s3-website-us-east-1.amazonaws.com"
-            }
+            "statusCode": 200,
+            "body": {
+                "message": "Successfully generated and uploaded HTML gallery",
+                "artworks_count": len(artworks),
+                "bucket_name": bucket_name,
+                "url": f"http://{bucket_name}.s3-website-us-east-1.amazonaws.com",
+            },
         }
-        
+
     except Exception as e:
         logger.error(f"Error generating HTML: {str(e)}")
         return {
-            'statusCode': 500,
-            'body': {
-                'error': str(e),
-                'message': 'Failed to generate HTML gallery'
-            }
+            "statusCode": 500,
+            "body": {"error": str(e), "message": "Failed to generate HTML gallery"},
         }
