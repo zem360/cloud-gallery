@@ -1,0 +1,62 @@
+name: 'Terraform Plan'
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'terraform/**'
+      - 'src/**'
+      - '.github/workflows/**'
+
+env:
+  TF_VERSION: '1.5.0'
+
+jobs:
+  terraform-plan:
+    name: 'Terraform Plan'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Terraform Format Check
+      run: terraform fmt -check
+
+    - name: Terraform Init
+      run: |
+        terraform init \
+          -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+          -backend-config="key=cloud-gallery/terraform.tfstate" \
+          -backend-config="region=${{ secrets.AWS_REGION }}" \
+          -backend-config="encrypt=true"
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Terraform Plan
+      run: terraform plan -no-color
+      env:
+        TF_VAR_website_bucket_name: ${{ secrets.TF_VAR_WEBSITE_BUCKET_NAME }}
+        TF_VAR_dynamodb_table_name: "cloud-gallery-art-data"
+        TF_VAR_lambda_fetch_art_name: "cloud-gallery-fetch-art"
+        TF_VAR_lambda_process_store_name: "cloud-gallery-process-store"
+        TF_VAR_lambda_generate_html_name: "cloud-gallery-generate-html"
+        TF_VAR_lambda_notifications_name: "cloud-gallery-notifications"
+        TF_VAR_step_functions_name: "cloud-gallery-art-pipeline"
+        TF_VAR_eventbridge_rule_name: "cloud-gallery-daily-trigger"
