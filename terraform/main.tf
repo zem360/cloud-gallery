@@ -1,4 +1,3 @@
-# S3 module for website hosting
 module "s3_website" {
   source = "./modules/s3"
   
@@ -18,5 +17,125 @@ module "dynamodb" {
   
   tags = {
     Component = "Database"
+  }
+}
+
+module "lambda_fetch_art" {
+  source = "./modules/lambda"
+  
+  function_name = var.lambda_fetch_art_name
+  environment   = var.environment
+  source_dir    = "../src/lambda_functions/fetch_art"
+  timeout       = 30
+  
+  tags = {
+    Component = "DataFetcher"
+  }
+}
+
+module "lambda_process_store" {
+  source = "./modules/lambda"
+  
+  function_name = var.lambda_process_store_name
+  environment   = var.environment
+  source_dir    = "../src/lambda_functions/process_store"
+  timeout       = 60
+  
+  environment_variables = {
+    DYNAMODB_TABLE_NAME = module.dynamodb.table_name
+  }
+  
+  tags = {
+    Component = "DataProcessor"
+  }
+}
+
+resource "aws_iam_policy" "dynamodb_access" {
+  name = "cloud-gallery-dynamodb-access"
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:PutItem",
+          "dynamodb:GetItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:Query",
+          "dynamodb:Scan"
+        ]
+        Resource = module.dynamodb.table_arn
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_process_store_dynamodb" {
+  role       = "${var.lambda_process_store_name}-role"
+  policy_arn = aws_iam_policy.dynamodb_access.arn
+}
+
+module "lambda_generate_html" {
+  source = "./modules/lambda"
+  
+  function_name = var.lambda_generate_html_name
+  environment   = var.environment
+  source_dir    = "../src/lambda_functions/generate_html"
+  timeout       = 60
+  
+  environment_variables = {
+    S3_BUCKET_NAME      = module.s3_website.bucket_name
+    DYNAMODB_TABLE_NAME = module.dynamodb.table_name
+  }
+  
+  tags = {
+    Component = "HTMLGenerator"
+  }
+}
+
+resource "aws_iam_policy" "s3_access" {
+  name = "cloud-gallery-s3-access"
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:PutObjectAcl",
+          "s3:GetObject",
+          "s3:DeleteObject"
+        ]
+        Resource = "${module.s3_website.bucket_arn}/*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_generate_html_s3" {
+  role       = "${var.lambda_generate_html_name}-role"
+  policy_arn = aws_iam_policy.s3_access.arn
+  depends_on = [module.lambda_generate_html]
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_generate_html_dynamodb" {
+  role       = "${var.lambda_generate_html_name}-role"
+  policy_arn = aws_iam_policy.dynamodb_access.arn
+  depends_on = [module.lambda_generate_html]
+}
+
+module "lambda_notifications" {
+  source = "./modules/lambda"
+  
+  function_name = var.lambda_notifications_name
+  environment   = var.environment
+  source_dir    = "../src/lambda_functions/notifications"
+  timeout       = 30
+  
+  tags = {
+    Component = "Notifications"
   }
 }
