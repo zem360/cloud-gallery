@@ -25,3 +25,23 @@ variable "dynamodb_table_name" {
   description = "Name of the DynamoDB table"
   type        = string
 }
+
+variable "lambda_fetch_art_name" {
+  description = "Name of the fetch art Lambda function"
+  type        = string
+}
+
+variable "lambda_process_store_name" {
+  description = "Name of the process and store Lambda function"
+  type        = string
+}
+
+variable "lambda_generate_html_name" {
+  description = "Name of the generate HTML Lambda function"
+  type        = string
+}
+
+variable "lambda_notifications_name" {
+  description = "Name of the notifications Lambda function"
+  type        = string
+}
