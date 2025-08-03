@@ -6,6 +6,7 @@
 .terraform/
 .terraform.lock.hcl
 terraform.tfplan
+backend-config.hcl
 
 # Python
 __pycache__/
