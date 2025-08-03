@@ -1,4 +1,4 @@
-# Art Pipeline - Daily Art Showcase
+# Cloud Gallery - Daily Dose of Art
 
 A serverless data pipeline that fetches artwork from the Art Institute of Chicago API daily and displays them on a static website hosted on AWS S3.
 
@@ -11,7 +11,6 @@ The pipeline uses the following AWS services:
 - **DynamoDB**: Metadata storage
 - **S3**: Static website hosting
 - **SNS**: Notifications
-- **CloudWatch**: Monitoring and logging
 
 ## Project Structure
 
@@ -22,7 +21,6 @@ art-pipeline/
 ├── src/                 # Lambda function source code
 ├── tests/               # Unit and integration tests
 ├── scripts/             # Deployment and utility scripts
-└── templates/           # HTML templates
 ```
 
 ## Prerequisites
