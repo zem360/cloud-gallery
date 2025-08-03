@@ -233,7 +233,7 @@ def generate_html_content(artworks):
 <body>
     <div class="container">
         <div class="header">
-            <h1>☁️🖼️ Cloud Gallery</h1>
+            <h1>☁️🎨🖼️ Cloud Gallery</h1>
             <p>Daily Dose of Art - {current_date}</p>
         </div>
         
