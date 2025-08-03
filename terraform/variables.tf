@@ -45,3 +45,8 @@ variable "lambda_notifications_name" {
   description = "Name of the notifications Lambda function"
   type        = string
 }
+
+variable "step_functions_name" {
+  description = "Name of the Step Functions state machine"
+  type        = string
+}
