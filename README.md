@@ -12,7 +12,7 @@ A serverless data pipeline that fetches artwork from the Art Institute of Chicag
 **[View the Gallery →](http://cloud-gallery-dev-website-static.s3-website-us-east-1.amazonaws.com/)**
 
 *Daily dose of curated artwork from the Art Institute of Chicago*
-
+![Cloud Gallery](./docs/cloud-gallery-website.png)
 ## 🏗️ Architecture
 
 ![Architecture Diagram](./docs/architecture-diagram.png)
