@@ -59,5 +59,5 @@ variable "eventbridge_rule_name" {
 variable "schedule_expression" {
   description = "Cron expression for daily schedule"
   type        = string
-  default     = "cron(0 12 * * ? *)"  # Daily at 12:00 PM UTC
+  default     = "cron(0 0 * * ? *)"  # Daily at 12:00 AM UTC, 02:00 AM Berlin
 }
