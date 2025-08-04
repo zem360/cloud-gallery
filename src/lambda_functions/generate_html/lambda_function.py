@@ -352,6 +352,45 @@ def generate_html_content(artworks):
     return html_content
 
 
+def get_latest_artworks_from_dynamodb(table_name):
+    """Fetch latest artworks from DynamoDB"""
+    table = dynamodb.Table(table_name)
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    
+    try:
+        response = table.scan(
+            FilterExpression="date_fetched = :date AND #status = :status",
+            ExpressionAttributeValues={
+                ":date": today,
+                ":status": "active"
+            },
+            ExpressionAttributeNames={
+                "#status": "status"
+            }
+        )
+        items = response.get('Items', [])
+        
+        # Convert DynamoDB items back to artwork format
+        artworks = []
+        for item in items:
+            artwork = {
+                "artwork_id": item["artwork_id"],
+                "title": item["title"],
+                "artist": item["artist"],
+                "date": item["date_display"],
+                "image_id": item.get("image_id"),
+                "fetched_at": item["fetched_at"]
+            }
+            artworks.append(artwork)
+            
+        logger.info(f"Retrieved {len(artworks)} artworks from DynamoDB for date {today}")
+        return artworks
+        
+    except Exception as e:
+        logger.error(f"Error reading from DynamoDB: {e}")
+        return []
+
+
 def upload_to_s3(bucket_name, html_content):
     """Upload HTML content to S3 bucket"""
     try:
@@ -379,17 +418,22 @@ def lambda_handler(event, context):
         # Get environment variables
         bucket_name, table_name = get_environment_variables()
 
-        # Get artworks from previous step
-        if "body" in event and "artworks" in event["body"]:
-            artworks = event["body"]["artworks"]
-        else:
-            raise ValueError("No artworks found in event data")
+        # Get artworks from DynamoDB instead of relying on previous step
+        artworks = get_latest_artworks_from_dynamodb(table_name)
 
-        logger.info(f"Generating HTML for {len(artworks)} artworks")
+        logger.info(f"Retrieved {len(artworks)} artworks from DynamoDB")
 
         # Validate we have artworks
         if not artworks:
-            raise ValueError("No artworks to display")
+            logger.warning("No artworks found in DynamoDB for today's date")
+            # Try to get artworks from previous step as fallback
+            if "body" in event and "artworks" in event["body"]:
+                artworks = event["body"]["artworks"]
+                logger.info(f"Using fallback artworks from event: {len(artworks)} items")
+            else:
+                raise ValueError("No artworks found in DynamoDB or event data")
+
+        logger.info(f"Generating HTML for {len(artworks)} artworks")
 
         # Generate HTML content
         html_content = generate_html_content(artworks)

@@ -73,7 +73,7 @@ resource "aws_iam_policy" "dynamodb_access" {
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_process_store_dynamodb" {
-  role       = "${var.lambda_process_store_name}-role"
+  role       = module.lambda_process_store.role_name
   policy_arn = aws_iam_policy.dynamodb_access.arn
 }
 
@@ -116,15 +116,13 @@ resource "aws_iam_policy" "s3_access" {
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_generate_html_s3" {
-  role       = "${var.lambda_generate_html_name}-role"
+  role       = module.lambda_generate_html.role_name
   policy_arn = aws_iam_policy.s3_access.arn
-  depends_on = [module.lambda_generate_html]
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_generate_html_dynamodb" {
-  role       = "${var.lambda_generate_html_name}-role"
+  role       = module.lambda_generate_html.role_name
   policy_arn = aws_iam_policy.dynamodb_access.arn
-  depends_on = [module.lambda_generate_html]
 }
 
 module "lambda_notifications" {
