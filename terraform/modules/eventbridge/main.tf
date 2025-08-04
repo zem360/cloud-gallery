@@ -26,7 +26,9 @@ resource "aws_iam_policy" "eventbridge_stepfunctions_policy" {
       {
         Effect = "Allow"
         Action = [
-          "states:StartExecution"
+          "states:StartExecution",
+          "states:DescribeExecution",
+          "states:StopExecution"
         ]
         Resource = var.step_function_arn
       }
@@ -44,7 +46,7 @@ resource "aws_cloudwatch_event_rule" "daily_schedule" {
   name                = var.rule_name
   description         = "Trigger Cloud Gallery art pipeline daily"
   schedule_expression = var.schedule_expression
-  state              = "ENABLED"
+  state               = "ENABLED"
 
   tags = merge(var.tags, {
     Name        = var.rule_name
@@ -62,4 +64,8 @@ resource "aws_cloudwatch_event_target" "step_function_target" {
     comment = "Daily execution triggered by EventBridge"
     source  = "eventbridge.daily.schedule"
   })
+
+  depends_on = [
+    aws_iam_role_policy_attachment.eventbridge_stepfunctions_attach
+  ]
 }
